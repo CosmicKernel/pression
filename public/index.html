@@ -43,6 +43,7 @@
           <div class="actions">
             <nav class="tabs" aria-label="Navigation">
               <button class="tab active" id="readingsTab" type="button" data-view="readingsView">Mesures</button>
+              <button class="tab" id="reportTab" type="button" data-view="reportView">Rapport</button>
               <button class="tab hidden" id="usersTab" type="button" data-view="usersView">Utilisateurs</button>
             </nav>
             <button class="ghost" id="logoutButton" type="button">Deconnexion</button>
@@ -99,6 +100,63 @@
               <div class="readings" id="readingsList"></div>
             </section>
           </section>
+        </section>
+
+        <section class="hidden" id="reportView">
+          <section class="report-actions">
+            <button type="button" id="printReportButton">Imprimer</button>
+          </section>
+
+          <article class="report" id="reportContent">
+            <header class="report-header">
+              <div>
+                <h2>Rapport de pression arterielle</h2>
+                <p id="reportPatient">Patient: --</p>
+              </div>
+              <div>
+                <span>Genere le</span>
+                <strong id="reportGeneratedAt">--</strong>
+              </div>
+            </header>
+
+            <section class="report-summary" aria-label="Resume du rapport">
+              <article>
+                <span>Moyenne globale</span>
+                <strong id="reportAverage">--/--</strong>
+              </article>
+              <article>
+                <span>Moyenne matin</span>
+                <strong id="reportMorningAverage">--/--</strong>
+              </article>
+              <article>
+                <span>Moyenne soir</span>
+                <strong id="reportEveningAverage">--/--</strong>
+              </article>
+              <article>
+                <span>Mesures</span>
+                <strong id="reportCount">0</strong>
+              </article>
+            </section>
+
+            <section class="report-notes">
+              <p id="reportPeriod">Periode: --</p>
+              <p id="reportRange">Valeurs observees: --</p>
+            </section>
+
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Heure</th>
+                  <th>Systolique</th>
+                  <th>Diastolique</th>
+                  <th>Pouls</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody id="reportRows"></tbody>
+            </table>
+          </article>
         </section>
 
         <section class="hidden" id="usersView">

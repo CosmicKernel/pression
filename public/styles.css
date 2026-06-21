@@ -223,6 +223,97 @@ textarea:focus {
   font-size: 1.9rem;
 }
 
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+
+.report {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 24px;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+}
+
+.report-header h2,
+.report-header p {
+  margin: 0;
+}
+
+.report-header p,
+.report-header span {
+  color: var(--muted);
+}
+
+.report-header strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.report-summary article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #f8faf7;
+}
+
+.report-summary span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 720;
+}
+
+.report-summary strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.45rem;
+}
+
+.report-notes {
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.report-notes p {
+  margin: 4px 0;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.report-table th,
+.report-table td {
+  border: 1px solid var(--line);
+  padding: 9px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.report-table th {
+  background: #eef4f1;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(300px, 420px) 1fr;
@@ -371,6 +462,20 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .report-header,
+  .report-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .report-header {
+    display: grid;
+  }
+
+  .report-table {
+    display: block;
+    overflow-x: auto;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
@@ -386,5 +491,47 @@ h2 {
 
   .delete-button {
     width: 100%;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .topbar,
+  .report-actions,
+  #readingsView,
+  #usersView {
+    display: none !important;
+  }
+
+  .shell {
+    width: 100%;
+    padding: 0;
+  }
+
+  #appView,
+  #reportView {
+    display: block !important;
+  }
+
+  .report {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .report-summary article {
+    break-inside: avoid;
+  }
+
+  .report-table {
+    font-size: 0.82rem;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 6px;
   }
 }

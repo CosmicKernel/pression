@@ -14,10 +14,22 @@ const averageValue = document.querySelector("#averageValue");
 const latestValue = document.querySelector("#latestValue");
 const countValue = document.querySelector("#countValue");
 const readingsTab = document.querySelector("#readingsTab");
+const reportTab = document.querySelector("#reportTab");
 const usersTab = document.querySelector("#usersTab");
 const tabs = document.querySelectorAll(".tab");
-const views = [document.querySelector("#readingsView"), document.querySelector("#usersView")];
+const views = [document.querySelector("#readingsView"), document.querySelector("#reportView"), document.querySelector("#usersView")];
+const printReportButton = document.querySelector("#printReportButton");
+const reportPatient = document.querySelector("#reportPatient");
+const reportGeneratedAt = document.querySelector("#reportGeneratedAt");
+const reportAverage = document.querySelector("#reportAverage");
+const reportMorningAverage = document.querySelector("#reportMorningAverage");
+const reportEveningAverage = document.querySelector("#reportEveningAverage");
+const reportCount = document.querySelector("#reportCount");
+const reportPeriod = document.querySelector("#reportPeriod");
+const reportRange = document.querySelector("#reportRange");
+const reportRows = document.querySelector("#reportRows");
 let currentUser = null;
+let currentReadings = [];
 
 function setDefaultDate() {
   const now = new Date();
@@ -39,6 +51,7 @@ function showView(id) {
   views.forEach((view) => view.classList.toggle("hidden", view.id !== id));
   tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.view === id));
   if (id === "usersView") loadUsers();
+  if (id === "reportView") renderReport(currentReadings);
 }
 
 function showApp(session) {
@@ -65,6 +78,24 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
+function formatReportDate(value) {
+  return new Intl.DateTimeFormat("fr-CA", { dateStyle: "medium" }).format(new Date(value));
+}
+
+function formatReportTime(value) {
+  return new Intl.DateTimeFormat("fr-CA", { timeStyle: "short" }).format(new Date(value));
+}
+
+function averageReadings(readings) {
+  if (!readings.length) return "--/--";
+  const totals = readings.reduce((acc, reading) => {
+    acc.systolic += reading.systolic;
+    acc.diastolic += reading.diastolic;
+    return acc;
+  }, { systolic: 0, diastolic: 0 });
+  return `${Math.round(totals.systolic / readings.length)}/${Math.round(totals.diastolic / readings.length)}`;
+}
+
 function renderSummary(readings) {
   countValue.textContent = readings.length;
   if (!readings.length) {
@@ -72,12 +103,7 @@ function renderSummary(readings) {
     latestValue.textContent = "--/--";
     return;
   }
-  const totals = readings.reduce((acc, reading) => {
-    acc.systolic += reading.systolic;
-    acc.diastolic += reading.diastolic;
-    return acc;
-  }, { systolic: 0, diastolic: 0 });
-  averageValue.textContent = `${Math.round(totals.systolic / readings.length)}/${Math.round(totals.diastolic / readings.length)}`;
+  averageValue.textContent = averageReadings(readings);
   latestValue.textContent = `${readings[0].systolic}/${readings[0].diastolic}`;
 }
 
@@ -96,6 +122,44 @@ function renderReadings(readings) {
       </div>
       <button class="delete-button" type="button" data-id="${reading.id}" aria-label="Supprimer">x</button>
     </article>
+  `).join("");
+}
+
+function renderReport(readings) {
+  const chronological = [...readings].sort((a, b) => new Date(a.measuredAt) - new Date(b.measuredAt));
+  const morningReadings = chronological.filter((reading) => new Date(reading.measuredAt).getHours() < 12);
+  const eveningReadings = chronological.filter((reading) => new Date(reading.measuredAt).getHours() >= 18);
+  reportPatient.textContent = `Patient: ${currentUser?.email || "--"}`;
+  reportGeneratedAt.textContent = formatDate(new Date().toISOString());
+  reportAverage.textContent = averageReadings(chronological);
+  reportMorningAverage.textContent = averageReadings(morningReadings);
+  reportEveningAverage.textContent = averageReadings(eveningReadings);
+  reportCount.textContent = chronological.length;
+
+  if (!chronological.length) {
+    reportPeriod.textContent = "Periode: aucune mesure";
+    reportRange.textContent = "Valeurs observees: aucune mesure";
+    reportRows.innerHTML = '<tr><td colspan="6">Aucune mesure disponible.</td></tr>';
+    return;
+  }
+
+  const first = chronological[0];
+  const last = chronological[chronological.length - 1];
+  const minSystolic = Math.min(...chronological.map((reading) => reading.systolic));
+  const maxSystolic = Math.max(...chronological.map((reading) => reading.systolic));
+  const minDiastolic = Math.min(...chronological.map((reading) => reading.diastolic));
+  const maxDiastolic = Math.max(...chronological.map((reading) => reading.diastolic));
+  reportPeriod.textContent = `Periode: ${formatReportDate(first.measuredAt)} au ${formatReportDate(last.measuredAt)}`;
+  reportRange.textContent = `Valeurs observees: systolique ${minSystolic}-${maxSystolic}, diastolique ${minDiastolic}-${maxDiastolic}`;
+  reportRows.innerHTML = chronological.map((reading) => `
+    <tr>
+      <td>${formatReportDate(reading.measuredAt)}</td>
+      <td>${formatReportTime(reading.measuredAt)}</td>
+      <td>${reading.systolic}</td>
+      <td>${reading.diastolic}</td>
+      <td>${reading.pulse || ""}</td>
+      <td>${reading.note ? escapeHtml(reading.note) : ""}</td>
+    </tr>
   `).join("");
 }
 
@@ -142,7 +206,9 @@ function escapeHtml(value) {
 
 async function loadReadings() {
   const data = await api("/api/readings");
+  currentReadings = data.readings;
   renderReadings(data.readings);
+  renderReport(data.readings);
 }
 
 async function loadUsers() {
@@ -249,6 +315,11 @@ usersList.addEventListener("click", async (event) => {
 logoutButton.addEventListener("click", async () => {
   await api("/api/logout", { method: "POST" });
   showLogin();
+});
+
+printReportButton.addEventListener("click", () => {
+  renderReport(currentReadings);
+  window.print();
 });
 
 tabs.forEach((tab) => {
