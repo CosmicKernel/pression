@@ -19,6 +19,9 @@ const usersTab = document.querySelector("#usersTab");
 const tabs = document.querySelectorAll(".tab");
 const views = [document.querySelector("#readingsView"), document.querySelector("#reportView"), document.querySelector("#usersView")];
 const printReportButton = document.querySelector("#printReportButton");
+const reportFilterForm = document.querySelector("#reportFilterForm");
+const reportFromDate = document.querySelector("#reportFromDate");
+const reportToDate = document.querySelector("#reportToDate");
 const reportPatient = document.querySelector("#reportPatient");
 const reportGeneratedAt = document.querySelector("#reportGeneratedAt");
 const reportAverage = document.querySelector("#reportAverage");
@@ -31,10 +34,24 @@ const reportRows = document.querySelector("#reportRows");
 let currentUser = null;
 let currentReadings = [];
 
+function toDateInputValue(date) {
+  const copy = new Date(date);
+  copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
+  return copy.toISOString().slice(0, 10);
+}
+
 function setDefaultDate() {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   readingForm.elements.measuredAt.value = now.toISOString().slice(0, 16);
+}
+
+function setDefaultReportDates() {
+  const today = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 29);
+  reportFromDate.value = toDateInputValue(thirtyDaysAgo);
+  reportToDate.value = toDateInputValue(today);
 }
 
 async function api(path, options = {}) {
@@ -62,6 +79,7 @@ function showApp(session) {
   appView.classList.remove("hidden");
   showView("readingsView");
   setDefaultDate();
+  setDefaultReportDates();
   loadReadings();
 }
 
@@ -96,6 +114,39 @@ function averageReadings(readings) {
   return `${Math.round(totals.systolic / readings.length)}/${Math.round(totals.diastolic / readings.length)}`;
 }
 
+function getReportRangeLabel() {
+  const selected = new FormData(reportFilterForm).get("range");
+  if (selected === "30") return "30 derniers jours";
+  if (selected === "90") return "3 derniers mois";
+  return "periode personnalisee";
+}
+
+function getFilteredReportReadings(readings) {
+  const selected = new FormData(reportFilterForm).get("range");
+  const today = new Date();
+  let from;
+  let to = new Date(today);
+  to.setHours(23, 59, 59, 999);
+
+  if (selected === "90") {
+    from = new Date(today);
+    from.setMonth(from.getMonth() - 3);
+    from.setHours(0, 0, 0, 0);
+  } else if (selected === "custom") {
+    from = reportFromDate.value ? new Date(`${reportFromDate.value}T00:00:00`) : null;
+    to = reportToDate.value ? new Date(`${reportToDate.value}T23:59:59`) : to;
+  } else {
+    from = new Date(today);
+    from.setDate(from.getDate() - 29);
+    from.setHours(0, 0, 0, 0);
+  }
+
+  return readings.filter((reading) => {
+    const measuredAt = new Date(reading.measuredAt);
+    return (!from || measuredAt >= from) && measuredAt <= to;
+  });
+}
+
 function renderSummary(readings) {
   countValue.textContent = readings.length;
   if (!readings.length) {
@@ -126,7 +177,8 @@ function renderReadings(readings) {
 }
 
 function renderReport(readings) {
-  const chronological = [...readings].sort((a, b) => new Date(a.measuredAt) - new Date(b.measuredAt));
+  const filtered = getFilteredReportReadings(readings);
+  const chronological = [...filtered].sort((a, b) => new Date(a.measuredAt) - new Date(b.measuredAt));
   const morningReadings = chronological.filter((reading) => new Date(reading.measuredAt).getHours() < 12);
   const eveningReadings = chronological.filter((reading) => new Date(reading.measuredAt).getHours() >= 18);
   reportPatient.textContent = `Patient: ${currentUser?.email || "--"}`;
@@ -137,7 +189,7 @@ function renderReport(readings) {
   reportCount.textContent = chronological.length;
 
   if (!chronological.length) {
-    reportPeriod.textContent = "Periode: aucune mesure";
+    reportPeriod.textContent = `Periode: ${getReportRangeLabel()} - aucune mesure`;
     reportRange.textContent = "Valeurs observees: aucune mesure";
     reportRows.innerHTML = '<tr><td colspan="6">Aucune mesure disponible.</td></tr>';
     return;
@@ -149,7 +201,7 @@ function renderReport(readings) {
   const maxSystolic = Math.max(...chronological.map((reading) => reading.systolic));
   const minDiastolic = Math.min(...chronological.map((reading) => reading.diastolic));
   const maxDiastolic = Math.max(...chronological.map((reading) => reading.diastolic));
-  reportPeriod.textContent = `Periode: ${formatReportDate(first.measuredAt)} au ${formatReportDate(last.measuredAt)}`;
+  reportPeriod.textContent = `Periode: ${getReportRangeLabel()} - ${formatReportDate(first.measuredAt)} au ${formatReportDate(last.measuredAt)}`;
   reportRange.textContent = `Valeurs observees: systolique ${minSystolic}-${maxSystolic}, diastolique ${minDiastolic}-${maxDiastolic}`;
   reportRows.innerHTML = chronological.map((reading) => `
     <tr>
@@ -320,6 +372,18 @@ logoutButton.addEventListener("click", async () => {
 printReportButton.addEventListener("click", () => {
   renderReport(currentReadings);
   window.print();
+});
+
+reportFilterForm.addEventListener("change", () => {
+  renderReport(currentReadings);
+});
+
+reportFilterForm.addEventListener("input", () => {
+  if (document.activeElement === reportFromDate || document.activeElement === reportToDate) {
+    reportFilterForm.elements.range.value = "custom";
+  }
+  const selected = new FormData(reportFilterForm).get("range");
+  if (selected === "custom") renderReport(currentReadings);
 });
 
 tabs.forEach((tab) => {

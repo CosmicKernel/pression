@@ -104,6 +104,31 @@
 
         <section class="hidden" id="reportView">
           <section class="report-actions">
+            <form class="report-filters" id="reportFilterForm">
+              <fieldset>
+                <legend>Periode</legend>
+                <label class="radio-option">
+                  <input type="radio" name="range" value="30" checked>
+                  30 jours
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="range" value="90">
+                  3 mois
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="range" value="custom">
+                  Personnalise
+                </label>
+              </fieldset>
+              <label>
+                Du
+                <input type="date" name="from" id="reportFromDate">
+              </label>
+              <label>
+                Au
+                <input type="date" name="to" id="reportToDate">
+              </label>
+            </form>
             <button type="button" id="printReportButton">Imprimer</button>
           </section>
 
