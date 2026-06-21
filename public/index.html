@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pression</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="login-view" id="loginView">
+        <div class="brand">
+          <span class="mark">P</span>
+          <div>
+            <h1>Pression</h1>
+            <p>Suivi prive de pression arterielle</p>
+          </div>
+        </div>
+
+        <form class="panel login-panel" id="loginForm">
+          <label>
+            Courriel
+            <input name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>
+            Mot de passe
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button type="submit">Se connecter</button>
+          <p class="message" id="loginMessage"></p>
+        </form>
+      </section>
+
+      <section class="app-view hidden" id="appView">
+        <header class="topbar">
+          <div class="brand compact">
+            <span class="mark">P</span>
+            <div>
+              <h1>Pression</h1>
+              <p id="accountEmail"></p>
+            </div>
+          </div>
+          <div class="actions">
+            <nav class="tabs" aria-label="Navigation">
+              <button class="tab active" id="readingsTab" type="button" data-view="readingsView">Mesures</button>
+              <button class="tab hidden" id="usersTab" type="button" data-view="usersView">Utilisateurs</button>
+            </nav>
+            <button class="ghost" id="logoutButton" type="button">Deconnexion</button>
+          </div>
+        </header>
+
+        <section id="readingsView">
+          <section class="summary" aria-label="Resume">
+            <article>
+              <span>Moyenne</span>
+              <strong id="averageValue">--/--</strong>
+            </article>
+            <article>
+              <span>Derniere mesure</span>
+              <strong id="latestValue">--/--</strong>
+            </article>
+            <article>
+              <span>Mesures</span>
+              <strong id="countValue">0</strong>
+            </article>
+          </section>
+
+          <section class="workspace">
+            <form class="panel entry-form" id="readingForm">
+              <h2>Nouvelle mesure</h2>
+              <div class="grid">
+                <label>
+                  Systolique
+                  <input name="systolic" type="number" min="60" max="260" placeholder="120" required>
+                </label>
+                <label>
+                  Diastolique
+                  <input name="diastolic" type="number" min="40" max="160" placeholder="80" required>
+                </label>
+                <label>
+                  Pouls
+                  <input name="pulse" type="number" min="30" max="220" placeholder="72">
+                </label>
+                <label>
+                  Date
+                  <input name="measuredAt" type="datetime-local" required>
+                </label>
+              </div>
+              <label>
+                Note
+                <textarea name="note" maxlength="240" rows="3" placeholder="Repos, apres marche, medication..."></textarea>
+              </label>
+              <button type="submit">Ajouter</button>
+              <p class="message" id="readingMessage"></p>
+            </form>
+
+            <section class="panel list-panel">
+              <h2>Historique</h2>
+              <div class="readings" id="readingsList"></div>
+            </section>
+          </section>
+        </section>
+
+        <section class="hidden" id="usersView">
+          <section class="admin-grid">
+            <form class="panel entry-form" id="userForm">
+              <h2>Nouvel utilisateur</h2>
+              <label>
+                Courriel
+                <input name="email" type="email" autocomplete="off" required>
+              </label>
+              <label>
+                Mot de passe
+                <input name="password" type="password" minlength="8" autocomplete="new-password" required>
+              </label>
+              <label>
+                Role
+                <select name="role">
+                  <option value="user">Utilisateur</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </label>
+              <button type="submit">Creer</button>
+              <p class="message" id="userMessage"></p>
+            </form>
+
+            <section class="panel list-panel">
+              <h2>Comptes</h2>
+              <div class="users" id="usersList"></div>
+            </section>
+          </section>
+        </section>
+      </section>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

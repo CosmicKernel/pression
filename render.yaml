@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: pression
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: node server.js
+    disk:
+      name: pression-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+      - key: APP_SECRET
+        generateValue: true
+      - key: APP_ADMIN_EMAIL
+        sync: false
+      - key: APP_ADMIN_PASSWORD
+        sync: false
